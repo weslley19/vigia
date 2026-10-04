@@ -1,32 +1,24 @@
-//
-//  VigiaApp.swift
-//  Vigia
-//
-//  Created by Weslley Oliveira on 04/10/26.
-//
-
 import SwiftUI
-import SwiftData
 
 @main
 struct VigiaApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+    private let monitor = SystemMonitor()
+    @AppStorage(Module.cpu.key) private var showCPU = Module.cpu.defaultOn
 
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+    init() {
+        monitor.start()
+    }
 
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        MenuBarExtra {
+            DashboardView(monitor: monitor)
+        } label: {
+            Image(systemName: "gauge.with.dots.needle.50percent")
+            if showCPU {
+                Text("\(Int((monitor.cpu * 100).rounded()))%")
+                    .monospacedDigit()
+            }
         }
-        .modelContainer(sharedModelContainer)
+        .menuBarExtraStyle(.window)
     }
 }
